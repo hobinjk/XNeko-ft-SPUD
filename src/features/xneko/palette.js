@@ -3,6 +3,8 @@ import { catNames } from "./Neko.js";
 
 const DEBUG = false;
 
+const usedNames = {};
+
 export async function getBestSpritesheetForImage(image) {
   let canvas = document.createElement('canvas');
   let width = 64;
@@ -15,19 +17,35 @@ export async function getBestSpritesheetForImage(image) {
   let bestClusters = palettize(imageData);
   let bestScore = 0;
   let bestName = null;
+  let scoredNames = [];
   for (let name of Object.keys(spritesheets)) {
     let sheet = spritesheets[name];
     if (!sheet) {
       continue;
     }
     let score = getSpritesheetScore(sheet, bestClusters);
-    if (score < bestScore || !bestName) {
-      bestScore = score;
-      bestName = name;
+    if (name === 'kina-nothoughts') {
+      score += 0.1;
+    } else if (name === 'air') {
+      score += 0.04;
+    } else if (name === 'spirit') {
+      score += 0.04;
     }
+    scoredNames.push({ score, name });
   }
+  scoredNames.sort((a, b) => {
+    return a.score - b.score;
+  });
+  bestScore = scoredNames[0].score;
+  bestName = scoredNames[0].name;
+
   if (bestName) {
-    console.log('best', bestName);
+    console.log('best', bestName, scoredNames);
+    if (!usedNames[bestName]) {
+      usedNames[bestName] = 0;
+    }
+    usedNames[bestName] += 1;
+    console.log(usedNames);
     return await getPalettedSpritesheet(spritesheets[bestName], bestClusters);
   } else {
     console.error('unable to find spritesheet');
@@ -114,7 +132,6 @@ function loadSpritesheet(url) {
 }
 
 function getSpritesheetScore(imageData, bestClusters) {
-  // TODO compare score to all other spritesheet options
   let score = 0;
   let scoreCount = 0;
 
