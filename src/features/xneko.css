@@ -2,14 +2,12 @@
   width: 32px;
   height: 32px;
   position: fixed;
-  pointer-events: none;
   image-rendering: pixelated;
   transform: translate(-50%, -50%);
 }
 
 .prop {
   position: fixed;
-  pointer-events: none;
   image-rendering: pixelated;
 }
 .prop > img {
@@ -90,7 +88,6 @@
   padding: 4px;
   overflow: hidden;
   position: relative;
-  pointer-events: auto;
 }
 
 .inventory > .prop > img {
