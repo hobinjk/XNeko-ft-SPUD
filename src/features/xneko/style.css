@@ -1,0 +1,24 @@
+.cat {
+  width: 32px;
+  height: 32px;
+  position: fixed;
+  pointer-events: none;
+  image-rendering: pixelated;
+  transform: translate(-50%, -50%);
+}
+
+.prop {
+  position: fixed;
+  pointer-events: none;
+  image-rendering: pixelated;
+}
+
+.spot-marker {
+  position: absolute;
+  background: black;
+  border: 2px solid white;
+  border-radius: 3px;
+  width: 4px;
+  height: 4px;
+  transform: translate(-50%, -50%);
+}

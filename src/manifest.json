@@ -37,12 +37,13 @@
   "permissions": [ "storage" ],
   "web_accessible_resources": [{
     "resources": [ "*.js", "*.json", "*.css", "*.svg", "*.png" ],
-    "matches": [ "*://www.tumblr.com/*" ]
+    "matches": [ "*://www.tumblr.com/*", "*://64.media.tumblr.com/*" ]
   }],
   "content_scripts": [
     {
       "matches": [
-        "*://www.tumblr.com/*"
+        "*://www.tumblr.com/*",
+        "*://64.media.tumblr.com/*"
       ],
       "exclude_matches": [
         "*://www.tumblr.com/login",
