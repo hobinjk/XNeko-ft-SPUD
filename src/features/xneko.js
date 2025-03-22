@@ -20,7 +20,7 @@ const processPosts = function(postElements) {
   filterPostElements(postElements, { includeFiltered: true }).forEach(async postElement => {
     if (alreadyProcessed(postElement)) return;
     postElement.classList.add(nekoProcessedClass);
-    const { postUrl } = await timelineObject(postElement);
+    const { postUrl, blog } = await timelineObject(postElement);
 
     const blogLinks = postElement.querySelectorAll(blogLinkSelector);
     if (blogLinks.length == 0) { return; }
@@ -30,7 +30,11 @@ const processPosts = function(postElements) {
       if (!avatarImg) {
         continue;
       }
-      scheduleNeko(blogLink.href, avatarImg, postUrl);
+      // Community? Other strangeness
+      if (blog.name.startsWith('@')) {
+        continue;
+      }
+      scheduleNeko(blog.name, avatarImg, postUrl);
     }
   });
 };
@@ -49,16 +53,36 @@ function waitForImgLoad(img) {
     };
   });
 }
-async function scheduleNeko(blogHref, avatarImg, postUrl) {
-  console.log('weee spawn', blogHref, avatarImg, postUrl);
+
+function sleep(ms) {
+  return new Promise(res => {
+    setTimeout(res, ms);
+  });
+}
+
+let knownCats = {};
+async function scheduleNeko(name, avatarImg, postUrl) {
+  if (knownCats[name]) {
+    // console.log('the cat is already spawning or spawned');
+    return;
+  }
+  knownCats[name] = true;
+  await sleep(10000 * Math.random() + 1000);
+
+  // console.log('weee spawn', blogHref, avatarImg, postUrl);
 
   await waitForImgLoad(avatarImg);
   let coolerImage = new Image();
   coolerImage.crossOrigin = 'anonymous';
-  coolerImage.src = avatarImg.srcset.split(' ')[0];
+  const avatarSrc = avatarImg.srcset.split(' ')[0];
+  coolerImage.src = avatarSrc;
   await waitForImgLoad(coolerImage);
   let sheetUrl = await getBestSpritesheetForImage(coolerImage);
-  cats.push(new Neko('custom', sheetUrl));
+  console.log('got', name, sheetUrl);
+  cats.push(new Neko(name, sheetUrl, {
+    avatarSrc,
+    postUrl,
+  }));
 }
 
 let running = false;

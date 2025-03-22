@@ -114,8 +114,9 @@ export const Spritesheet = {
 };
 
 export class Neko {
-  constructor(name, url) {
+  constructor(name, url, data) {
     this.name = name;
+    this.data = data;
     this.x = Math.random() * innerWidth;
     this.y = Math.random() * innerHeight;
     this.z = this.y;
@@ -143,16 +144,18 @@ export class Neko {
         <img src="" class="info-card-avatar" />
         <p class="info-card-name"></p>
       </div>
-      <div class="info-card-likes">Likes: <a class="info-card-post"></a></div>
+      <div class="info-card-likes">Likes: <a class="info-card-post" target="_blank"></a></div>
       <div class="info-card-visits">Visits: <span class="info-card-visit-count"></span></div>
     `;
     this.infoCard.innerHTML = template;
+    let avatar = this.infoCard.querySelector('.info-card-avatar');
+    avatar.src = this.data.avatarSrc;
     let name = this.infoCard.querySelector('.info-card-name');
     name.textContent = this.name;
 
     let post = this.infoCard.querySelector('.info-card-post');
     post.textContent = 'this post';
-    post.href = '#placeholder';
+    post.href = this.data.postUrl;
 
     let visits = this.infoCard.querySelector('.info-card-visit-count');
     visits.textContent = 4;
