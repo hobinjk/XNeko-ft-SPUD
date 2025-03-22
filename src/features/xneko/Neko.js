@@ -1,8 +1,23 @@
 import { Z_INDEX_BASE } from "./constants.js";
 
+// Minimal list since each evaluation takes time
 export const catNames = [
   'ace',
   'air',
+  'earth',
+  'fire',
+  'kina-nothoughts',
+  'marmalade',
+  'pink',
+  'rose',
+  'spirit',
+  'water',
+];
+
+export const allCatNames = [
+  'ace',
+  'air',
+  'anik',
   // 'alien',
   'black',
   'black2',
@@ -23,7 +38,7 @@ export const catNames = [
   'dog',
   // 'doom',
   'earth',
-  'face',
+  // 'face',
   'fancy',
   // 'ff3mog',
   'fire',
@@ -33,7 +48,7 @@ export const catNames = [
   // 'green-ghost',
   // 'holiday',
   'jess',
-  'kina',
+  'kina-nothoughts',
   'kuramecha',
   'lucky',
   // 'lucy-dog',
