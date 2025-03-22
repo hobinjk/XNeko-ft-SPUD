@@ -139,8 +139,9 @@ function getSpritesheetScore(imageData, bestClusters) {
   let width = imageData.width;
   let uses = new Array(bestClusters.length).fill(0);
 
+  let skipCount = 5;
   for (let y = 0; y < height; y++) {
-    for (let x = 0; x < width; x++) {
+    for (let x = y % skipCount; x < width; x += skipCount) {
       let minDist = 256 * 256 * 3;
       let assignment = 0;
       let r = imageData.data[(y * imageData.width + x) * 4 + 0]
@@ -176,9 +177,7 @@ function getSpritesheetScore(imageData, bestClusters) {
     }
     entropy -= uses[i] / scoreCount * Math.log(uses[i] / scoreCount);
   }
-  console.log('entropy', entropy);
   return -entropy;
-  // return score / scoreCount;
 }
 
 function getPalettedSpritesheet(imageData, bestClusters) {
