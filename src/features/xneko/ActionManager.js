@@ -9,6 +9,10 @@ export class ActionManager {
     this.editorMode = editorMode;
   }
 
+  addProp(prop) {
+    this.props.push(prop);
+  }
+
   update() {
     let dt = Date.now() - this.lastUpdate;
     for (let i = 0; i < this.cats.length; i++) {

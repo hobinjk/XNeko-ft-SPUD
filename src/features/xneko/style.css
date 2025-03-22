@@ -12,6 +12,9 @@
   pointer-events: none;
   image-rendering: pixelated;
 }
+.prop > img {
+  user-select: none;
+}
 
 .spot-marker {
   position: absolute;
@@ -21,4 +24,121 @@
   width: 4px;
   height: 4px;
   transform: translate(-50%, -50%);
+}
+
+.inventory {
+  position: fixed;
+  bottom: 52px;
+  left: 0;
+  display: none;
+  background: rgba(0, 0, 0, 0.3);
+
+  max-height: calc(48px * 4.5);
+  overflow-y: scroll;
+}
+
+.settings {
+  position: fixed;
+  bottom: 52px;
+  left: 52px;
+  border: 1px solid red;
+  display: none;
+}
+
+.inventory.open {
+  display: grid;
+  grid-template-columns: repeat(7, 48px);
+}
+
+.open-button, .settings-button {
+  width: 48px;
+  height: 48px;
+  color: white;
+  font-size: 32px;
+
+  box-sizing: border-box;
+
+  position: fixed;
+  bottom: 0;
+  left: 0;
+
+  z-index: 2;
+
+  border: 3px solid white;
+  background: #black;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  user-select: none;
+}
+
+.settings-button {
+  left: 52px;
+}
+
+.inventory > .prop {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid #777;
+  border-radius: 2px;
+  width: 48px;
+  height: 48px;
+  box-sizing: border-box;
+  padding: 4px;
+  overflow: hidden;
+  position: relative;
+  pointer-events: auto;
+}
+
+.inventory > .prop > img {
+  max-width: 40px;
+  max-height: 40px;
+}
+
+
+.inventory.trash {
+  background: rgba(80, 0, 0, 0.7);
+}
+
+.inventory.trash > .prop {
+  opacity: 0.1;
+}
+
+.info-card {
+  position: absolute;
+  background: rgba(255, 255, 255, 0.7);
+  box-shadow: 1px 1px 4px black;
+  width: 150px;
+  bottom: 36px;
+  border-radius: 4px;
+  padding: 4px;
+  left: 50%;
+  transform: translate(-50%, 0);
+  font-size: 12px;
+  font-family: sans-serif;
+  overflow: hidden;
+}
+
+.info-card-name {
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+  width: 100%;
+  margin: 0;
+  padding-left: 4px;
+}
+
+.info-card-avatar {
+  width: 16px;
+  height: 16px;
+  background: grey;
+}
+
+.info-card-header {
+  padding-bottom: 2px;
+  display: flex;
+  flex-direction: row;
 }

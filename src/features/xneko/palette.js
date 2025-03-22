@@ -4,7 +4,6 @@ import { catNames } from "./Neko.js";
 const DEBUG = false;
 
 export async function getBestSpritesheetForImage(image) {
-  console.log('hhmmmm?', spritesheets, image);
   let canvas = document.createElement('canvas');
   let width = 64;
   let height = 64;
@@ -38,7 +37,7 @@ export async function getBestSpritesheetForImage(image) {
 function palettize(imageData) {
   let points = [];
   for (let y = 0; y < Math.min(imageData.height, imageData.width); y++) {
-    for (let x = 0; x < imageData.width; x++) {
+    for (let x = y % 3; x < imageData.width; x += 3) {
       let r = imageData.data[(y * imageData.width + x) * 4 + 0]
       let g = imageData.data[(y * imageData.width + x) * 4 + 1]
       let b = imageData.data[(y * imageData.width + x) * 4 + 2]
@@ -50,26 +49,27 @@ function palettize(imageData) {
     }
   }
 
-  let bestClusters = null;
-  let bestScore = -100;
+  // let bestClusters = null;
+  // let bestScore = -100;
 
   let allClusters = [];
-  for (let k = 2; k < 10; k++) {
-    let clusters = kMeans(k, points);
-    allClusters.push(clusters);
-    let score = silhouette(points, clusters);
-    if (score > bestScore) {
-      bestScore = score;
-      bestClusters = clusters;
-    }
-  }
-  bestClusters = allClusters[6];
+  // for (let k = 2; k < 10; k++) {
+  const k = 8;
+  let clusters = kMeans(k, points);
+  allClusters.push(clusters);
+  // let score = silhouette(points, clusters);
+  // if (score > bestScore) {
+  //   bestScore = score;
+  //   bestClusters = clusters;
+  // }
+  // }
+  // bestClusters = allClusters[6];
 
-  console.log(bestScore, bestClusters);
+  // console.log(bestScore, bestClusters);
   if (DEBUG) {
     drawPalettes(allClusters);
   }
-  return bestClusters;
+  return clusters;
 }
 
 function drawPalettes(allClusters) {
@@ -208,7 +208,6 @@ function getPalettedSpritesheet(imageData, bestClusters) {
   }
   gfx.putImageData(outID, 0, 0);
 
-  console.log('hhmmmm?');
   return new Promise((resolve) => {
     canvas.toBlob(blob => {
       resolve(URL.createObjectURL(blob));

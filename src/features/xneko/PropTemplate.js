@@ -18,6 +18,7 @@ export class PropTemplate {
     let { width, height, isFloorProp } = prop;
     let spots = prop.spots.map(spot => new Spot(spot.x, spot.y, spot.allowedActions));
     let image = document.createElement('img');
+    image.draggable = false;
     image.style.width = width + 'px';
     image.style.height = height + 'px';
     // TODO xss prevention by forcing it to be a data base64 url
@@ -25,6 +26,31 @@ export class PropTemplate {
     let template = new PropTemplate(width, height, spots, isFloorProp);
     template.container.appendChild(image);
     return template;
+  }
+
+  serialize() {
+    let { width, height, isFloorProp } = this;
+    let spots = this.spots.map(spot => {
+      return {
+        x: spot.x,
+        y: spot.y,
+        allowedActions: spot.allowedActions,
+      };
+    });
+
+    let src = 'unknown';
+    let image = this.container.querySelector('img');
+    if (image) {
+      src = image.src;
+
+    }
+    return {
+      width,
+      height,
+      isFloorProp,
+      spots,
+      src
+    };
   }
 
   addSpotMarkers() {
@@ -51,36 +77,81 @@ class Spot {
   }
 }
 
-export class BedTemplate extends PropTemplate {
-  constructor() {
-    super(32, 32, [
-      new Spot(16, 16 - 16, [Actions.sleep]),
-    ], true);
-    this.container.style.background = 'url(dithers/brownbed.png)';
-    this.container.style.width = '32px';
-    this.container.style.height = '27px';
-    console.log(this);
-  }
-}
+export const bedTemplate = PropTemplate.deserialize({
+  width: 32,
+  height: 27,
+  isFloorProp: true,
+  spots: [
+    { x: 16, y: 0, allowedActions: [Actions.sleep] },
+  ],
+  src: 'dithers/brownbed.png',
+});
 
-export class BookshelfTemplate extends PropTemplate {
-  constructor() {
-    super(64, 172, [], false);
-    for (let y = 0; y < this.height / 32; y++) {
-      let actions = [Actions.sleep];
-      if (y === 0) {
-        actions.push(Actions.sleep);
-        actions.push(Actions.itch);
-      }
-      let x = (y % 2) * 20 - 10;
-      this.spots.push(new Spot(x + 32, 160 - (y * 32 - 16), actions));
+export const bookshelfTemplate = PropTemplate.deserialize({
+  width: 64,
+  height: 172,
+  isFloorProp: false,
+  spots: [
+  ],
+  src: 'dithers/shelf.png',
+  spots: [
+    {
+      x: 22,
+      y: 176,
+      allowedActions: [
+        "sleep",
+        "sleep",
+        "itch"
+      ]
+    },
+    {
+      x: 42,
+      y: 144,
+      allowedActions: [
+        "sleep"
+      ]
+    },
+    {
+      x: 22,
+      y: 112,
+      allowedActions: [
+        "sleep"
+      ]
+    },
+    {
+      x: 42,
+      y: 80,
+      allowedActions: [
+        "sleep"
+      ]
+    },
+    {
+      x: 22,
+      y: 48,
+      allowedActions: [
+        "sleep"
+      ]
+    },
+    {
+      x: 42,
+      y: 16,
+      allowedActions: [
+        "sleep"
+      ]
+    },
+    {
+      x: -16,
+      y: 156,
+      allowedActions: [
+        "escratch"
+      ]
+    },
+    {
+      x: 80,
+      y: 156,
+      allowedActions: [
+        "wscratch"
+      ]
     }
-    this.spots.push(new Spot(-16, this.height - 16, [Actions.escratch]));
-    this.spots.push(new Spot(this.width + 16, this.height - 16, [Actions.wscratch]));
-
-    this.container.style.background = 'url(dithers/shelf.png)';
-    this.container.style.width = `${this.width}px`;
-    this.container.style.height = `${this.height}px`;
-    console.log(this);
-  }
-}
+  ],
+});

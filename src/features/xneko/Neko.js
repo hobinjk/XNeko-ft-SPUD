@@ -131,6 +131,33 @@ export class Neko {
     this.animation = 'wrun';
     this.animationIndex = 0;
     this.animationScale = 1;
+
+    this.createInfoCard();
+  }
+
+  createInfoCard() {
+    this.infoCard = document.createElement('div');
+    this.infoCard.classList.add('info-card');
+    const template = `
+      <div class="info-card-header">
+        <img src="" class="info-card-avatar" />
+        <p class="info-card-name"></p>
+      </div>
+      <div class="info-card-likes">Likes: <a class="info-card-post"></a></div>
+      <div class="info-card-visits">Visits: <span class="info-card-visit-count"></span></div>
+    `;
+    this.infoCard.innerHTML = template;
+    let name = this.infoCard.querySelector('.info-card-name');
+    name.textContent = this.name;
+
+    let post = this.infoCard.querySelector('.info-card-post');
+    post.textContent = 'this post';
+    post.href = '#placeholder';
+
+    let visits = this.infoCard.querySelector('.info-card-visit-count');
+    visits.textContent = 4;
+
+    this.elt.appendChild(this.infoCard);
   }
 
   update() {
