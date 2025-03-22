@@ -5,6 +5,9 @@ import { onNewPosts } from '../utils/mutations.js';
 
 import { ActionManager } from "./xneko/ActionManager.js";
 import { Neko } from "./xneko/Neko.js";
+import { Inventory } from './xneko/Inventory.js';
+import { Settings } from './xneko/Settings.js';
+import { bedTemplate, bookshelfTemplate } from './xneko/PropTemplate.js';
 import { getBestSpritesheetForImage } from "./xneko/palette.js";
 
 const nekoProcessedClass = 'xneko-processed';
@@ -70,6 +73,8 @@ export const clean = async function() {
   running = false;
 }
 
+export const stylesheet = true;
+
 let cats = [];
 // Preview
 let actionManager = new ActionManager(cats, [], false);
@@ -79,3 +84,11 @@ function update() {
     window.requestAnimationFrame(update);
   }
 }
+
+const inventory = new Inventory(
+  new Settings(),
+  actionManager, [
+  bedTemplate,
+  bookshelfTemplate,
+]);
+inventory.add();
