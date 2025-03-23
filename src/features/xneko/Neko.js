@@ -134,6 +134,19 @@ export class Neko {
     this.data = data;
     this.x = Math.random() * innerWidth;
     this.y = Math.random() * innerHeight;
+
+    // Place off the screen
+    let offX = Math.random() < 0.5;
+    if (offX) {
+      this.x = this.x < innerWidth / 2 ?
+        -100 :
+        innerWidth + 100;
+    } else {
+      this.y = this.y < innerHeight / 2 ?
+        -200 :
+        innerHeight + 200;
+    }
+
     this.z = this.y;
     this.elt = document.createElement('div');
     this.elt.classList.add('cat');
@@ -149,6 +162,10 @@ export class Neko {
     this.animationScale = 1;
 
     this.createInfoCard();
+
+    this.elt.classList.add('info-card-open');
+    this.showingInitialInfoCard = true;
+    this.closeInfoCardTimeout = null;
   }
 
   remove() {
@@ -222,6 +239,17 @@ export class Neko {
   }
 
   updateMovement() {
+    if (this.showingInitialInfoCard) {
+      if (this.x > 0 && this.y > 0 && this.x < innerWidth && this.y < innerHeight) {
+        this.showingInitialInfoCard = false;
+        if (this.closeInfoCardTimeout) {
+          clearTimeout(this.closeInfoCardTimeout);
+        }
+        this.closeInfoCardTimeout = setTimeout(() => {
+          this.elt.classList.remove('info-card-open');
+        }, 10000);
+      }
+    }
     this.elt.style.top = `${this.y}px`;
     this.elt.style.left = `${this.x}px`;
     this.elt.style.zIndex = Math.round(this.z + Z_INDEX_BASE);
