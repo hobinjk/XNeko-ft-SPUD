@@ -148,3 +148,21 @@
   display: flex;
   flex-direction: row;
 }
+
+.cat-heart {
+  position: absolute;
+  bottom: 36px;
+  left: 50%;
+  transform: translate(-50%, 36px) scale(0);
+
+  opacity: 0;
+  filter: hue-rotate(0deg);
+  pointer-events: none;
+  transition: opacity 0.2s ease-out, transform 0.2s ease-out, filter 1.2s linear;
+}
+
+.cat-heart.shown {
+  transform: translate(-50%, 0) scale(1);
+  opacity: 1;
+  filter: hue-rotate(360deg);
+}

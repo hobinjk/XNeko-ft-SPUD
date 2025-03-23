@@ -169,6 +169,8 @@ export class Neko {
     this.showingInitialInfoCard = true;
     this.closeInfoCardTimeout = null;
 
+    this.createHeart();
+
     this.onPointerMove = this.onPointerMove.bind(this);
     this.onPointerDown = this.onPointerDown.bind(this);
 
@@ -208,6 +210,15 @@ export class Neko {
     this.elt.appendChild(this.infoCard);
   }
 
+  createHeart() {
+    this.heart = document.createElement('img');
+    this.heart.src = browser.runtime.getURL(`/features/xneko/sprites/redheart.png`);
+
+    this.heart.classList.add('cat-heart');
+    this.elt.appendChild(this.heart);
+  }
+
+
   onPointerMove() {
     this.openInfoCard();
     this.closeInfoCard(5000);
@@ -217,11 +228,15 @@ export class Neko {
     let action = new UndirectedAction(
       this,
       'alert',
-      500,
+      1500,
       this.x,
       this.y,
     );
     this.actionManager.setAction(this, action);
+    this.heart.classList.add('shown');
+    setTimeout(() => {
+      this.heart.classList.remove('shown');
+    }, 1200);
   }
 
   update() {
