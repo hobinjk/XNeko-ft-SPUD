@@ -1,4 +1,5 @@
 import { Z_INDEX_BASE } from "./constants.js";
+import { UndirectedAction } from "./ActionManager.js";
 
 // Minimal list since each evaluation takes time
 export const catNames = [
@@ -129,7 +130,8 @@ export const Spritesheet = {
 };
 
 export class Neko {
-  constructor(name, url, data) {
+  constructor(actionManager, name, url, data) {
+    this.actionManager = actionManager;
     this.name = name;
     this.data = data;
     this.x = Math.random() * innerWidth;
@@ -163,13 +165,20 @@ export class Neko {
 
     this.createInfoCard();
 
-    this.elt.classList.add('info-card-open');
+    this.infoCard.classList.add('info-card-open');
     this.showingInitialInfoCard = true;
     this.closeInfoCardTimeout = null;
+
+    this.onPointerMove = this.onPointerMove.bind(this);
+    this.onPointerDown = this.onPointerDown.bind(this);
+
+    this.elt.addEventListener('pointermove', this.onPointerMove);
+    this.elt.addEventListener('pointerdown', this.onPointerDown);
   }
 
   remove() {
     document.body.removeChild(this.elt);
+    this.actionManager = null;
   }
 
   createInfoCard() {
@@ -197,6 +206,22 @@ export class Neko {
     visits.textContent = 4;
 
     this.elt.appendChild(this.infoCard);
+  }
+
+  onPointerMove() {
+    this.openInfoCard();
+    this.closeInfoCard(5000);
+  }
+
+  onPointerDown() {
+    let action = new UndirectedAction(
+      this,
+      'alert',
+      500,
+      this.x,
+      this.y,
+    );
+    this.actionManager.setAction(this, action);
   }
 
   update() {
@@ -238,16 +263,24 @@ export class Neko {
     this.updateAnimation();
   }
 
+  openInfoCard() {
+    this.infoCard.classList.add('info-card-open');
+  }
+
+  closeInfoCard(delayMs) {
+    if (this.closeInfoCardTimeout) {
+      clearTimeout(this.closeInfoCardTimeout);
+    }
+    this.closeInfoCardTimeout = setTimeout(() => {
+      this.infoCard.classList.remove('info-card-open');
+    }, delayMs);
+  }
+
   updateMovement() {
     if (this.showingInitialInfoCard) {
       if (this.x > 0 && this.y > 0 && this.x < innerWidth && this.y < innerHeight) {
         this.showingInitialInfoCard = false;
-        if (this.closeInfoCardTimeout) {
-          clearTimeout(this.closeInfoCardTimeout);
-        }
-        this.closeInfoCardTimeout = setTimeout(() => {
-          this.elt.classList.remove('info-card-open');
-        }, 10000);
+        this.closeInfoCard(10000);
       }
     }
     this.elt.style.top = `${this.y}px`;

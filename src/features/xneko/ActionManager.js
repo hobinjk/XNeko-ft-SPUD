@@ -28,6 +28,14 @@ export class ActionManager {
     this.lastUpdate += dt;
   }
 
+  setAction(cat, action) {
+    let index = this.cats.indexOf(cat);
+    if (index < 0) {
+      return;
+    }
+    this.actions[index] = action;
+  }
+
   getAction(cat) {
     let directedActions = [];
 
@@ -202,7 +210,7 @@ const ActionPhase = {
 
 const runSpeed = 0.05;
 
-class UndirectedAction extends Action {
+export class UndirectedAction extends Action {
   constructor(cat, targetAnimation, duration, targetX, targetY) {
     super(cat);
     this.phase = ActionPhase.runTo;

@@ -123,7 +123,7 @@
   transition: opacity 0.5s linear;
 }
 
-.info-card-open > .info-card {
+.info-card.info-card-open {
   opacity: 1;
   pointer-events: auto;
 }

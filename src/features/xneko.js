@@ -108,7 +108,7 @@ async function spawnCat(name) {
     console.error('unable to generate spritesheet for cat', knownCat);
     return;
   }
-  cats.push(new Neko(name, sheetUrl, knownCat.data));
+  cats.push(new Neko(actionManager, name, sheetUrl, knownCat.data));
 }
 
 async function readStoredData(key) {
