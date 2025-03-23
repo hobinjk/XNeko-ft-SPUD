@@ -151,6 +151,10 @@ export class Neko {
     this.createInfoCard();
   }
 
+  remove() {
+    document.body.removeChild(this.elt);
+  }
+
   createInfoCard() {
     this.infoCard = document.createElement('div');
     this.infoCard.classList.add('info-card');

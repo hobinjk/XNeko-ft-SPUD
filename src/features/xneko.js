@@ -8,13 +8,21 @@ import { Neko } from "./xneko/Neko.js";
 import { Inventory } from './xneko/Inventory.js';
 import { Settings } from './xneko/Settings.js';
 import { bedTemplate, bookshelfTemplate } from './xneko/PropTemplate.js';
-import { getBestSpritesheetForImage } from "./xneko/palette.js";
+import { getBestPaletteAndSpritesheetForImage, getSpritesheetFromSavedResults } from "./xneko/palette.js";
 
 const nekoProcessedClass = 'xneko-processed';
 const blogLinkSelector = keyToCss('blogLink');
 
 const alreadyProcessed = postElement =>
   postElement.classList.contains(nekoProcessedClass);
+
+const KEY_SCHEDULED_CATS = 'xneko.scheduledCats';
+const KEY_KNOWN_CATS = 'xneko.knownCats';
+
+const storedData = {
+  scheduledCats: [],
+  knownCats: {},
+};
 
 const processPosts = function(postElements) {
   filterPostElements(postElements, { includeFiltered: true }).forEach(async postElement => {
@@ -34,7 +42,8 @@ const processPosts = function(postElements) {
       if (blog.name.startsWith('@')) {
         continue;
       }
-      scheduleNeko(blog.name, avatarImg, postUrl);
+      let time = Date.now(); // todo put them far out in the future
+      scheduleNeko(blog.name, time, avatarImg, postUrl);
     }
   });
 };
@@ -54,39 +63,92 @@ function waitForImgLoad(img) {
   });
 }
 
-function sleep(ms) {
-  return new Promise(res => {
-    setTimeout(res, ms);
+async function scheduleNeko(name, time, avatarImg, postUrl) {
+  await waitForImgLoad(avatarImg);
+  await readStoredData(KEY_KNOWN_CATS);
+  const avatarSrc = avatarImg.srcset.split(' ')[0];
+  let knownCat = storedData.knownCats[name];
+  if (!knownCat || knownCat.avatarSrc !== avatarSrc) {
+    let coolerImage = new Image();
+    coolerImage.crossOrigin = 'anonymous';
+    coolerImage.src = avatarSrc;
+    await waitForImgLoad(coolerImage);
+    let results = await getBestPaletteAndSpritesheetForImage(coolerImage);
+    if (!results) {
+      console.warn('unable to generate spritesheet');
+      return;
+    }
+    storedData.knownCats[name] = {
+      avatarSrc,
+      palette: results.palette,
+      sheetName: results.sheetName,
+      data: {
+        avatarSrc,
+        postUrl,
+      },
+    };
+    await persistStoredData(KEY_KNOWN_CATS);
+  }
+  storedData.scheduledCats.push({
+    time,
+    name,
   });
+  await persistStoredData(KEY_SCHEDULED_CATS);
 }
 
-let knownCats = {};
-async function scheduleNeko(name, avatarImg, postUrl) {
-  if (knownCats[name]) {
-    // console.log('the cat is already spawning or spawned');
+async function spawnCat(name) {
+  await readStoredData(KEY_KNOWN_CATS);
+  const knownCat = storedData.knownCats[name];
+  if (!knownCat) {
+    console.warn('never seen this cat before in my life', name);
     return;
   }
-  knownCats[name] = true;
-  await sleep(10000 * Math.random() + 1000);
+  let sheetUrl = await getSpritesheetFromSavedResults(knownCat.sheetName, knownCat.palette);
+  if (!sheetUrl) {
+    console.error('unable to generate spritesheet for cat', knownCat);
+    return;
+  }
+  cats.push(new Neko(name, sheetUrl, knownCat.data));
+}
 
-  // console.log('weee spawn', blogHref, avatarImg, postUrl);
+async function readStoredData(key) {
+  switch (key) {
+    case KEY_KNOWN_CATS:
+      const { [KEY_KNOWN_CATS]: knownCats = {} } = await browser.storage.local.get(KEY_KNOWN_CATS);
+      storedData.knownCats = knownCats;
+      break;
+    case KEY_SCHEDULED_CATS:
+      const { [KEY_SCHEDULED_CATS]: scheduledCats = [] } = await browser.storage.local.get(KEY_SCHEDULED_CATS);
+      storedData.scheduledCats = scheduledCats;
+      break;
+    default: {
+      const { [KEY_KNOWN_CATS]: knownCats = {} } = await browser.storage.local.get(KEY_KNOWN_CATS);
+      storedData.knownCats = knownCats;
+      const { [KEY_SCHEDULED_CATS]: scheduledCats = [] } = await browser.storage.local.get(KEY_SCHEDULED_CATS);
+      storedData.scheduledCats = scheduledCats;
+    }
+      break;
+  }
+}
 
-  await waitForImgLoad(avatarImg);
-  let coolerImage = new Image();
-  coolerImage.crossOrigin = 'anonymous';
-  const avatarSrc = avatarImg.srcset.split(' ')[0];
-  coolerImage.src = avatarSrc;
-  await waitForImgLoad(coolerImage);
-  let sheetUrl = await getBestSpritesheetForImage(coolerImage);
-  console.log('got', name, sheetUrl);
-  cats.push(new Neko(name, sheetUrl, {
-    avatarSrc,
-    postUrl,
-  }));
+async function persistStoredData(key) {
+  switch (key) {
+    case KEY_KNOWN_CATS:
+      await browser.storage.local.set({ [KEY_KNOWN_CATS]: storedData.knownCats });
+      break;
+    case KEY_SCHEDULED_CATS:
+      await browser.storage.local.set({ [KEY_SCHEDULED_CATS]: storedData.scheduledCats });
+      break;
+    default:
+      await browser.storage.local.set({ [KEY_KNOWN_CATS]: storedData.knownCats });
+      await browser.storage.local.set({ [KEY_SCHEDULED_CATS]: storedData.scheduledCats });
+      break;
+  }
 }
 
 let running = false;
 export const main = async function() {
+  await readStoredData();
   onNewPosts.addListener(processPosts);
   running = true;
   update();
@@ -94,19 +156,53 @@ export const main = async function() {
 
 export const clean = async function() {
   onNewPosts.removeListener(processPosts);
+  for (let cat of cats) {
+    cat.remove();
+  }
   running = false;
 }
 
 export const stylesheet = true;
+
+let lastCheckForScheduledCats = Date.now();
+let checkDelayMs = 1000;
 
 let cats = [];
 // Preview
 let actionManager = new ActionManager(cats, [], false);
 function update() {
   actionManager.update();
+  const now = Date.now();
+  if (lastCheckForScheduledCats + checkDelayMs < now) {
+    lastCheckForScheduledCats = now;
+    checkForScheduledCats();
+  }
   if (running) {
     window.requestAnimationFrame(update);
   }
+}
+
+async function checkForScheduledCats() {
+  await readStoredData(KEY_SCHEDULED_CATS);
+  if (storedData.scheduledCats.length === 0) {
+    return;
+  }
+  let nextCat = storedData.scheduledCats[0];
+  if (nextCat.time > Date.now()) {
+    return;
+  }
+  let alreadyVisiting = false;
+  for (let cat of cats) {
+    if (cat.name === nextCat.name) {
+      alreadyVisiting = true;
+      break;
+    }
+  }
+  if (!alreadyVisiting) {
+    spawnCat(nextCat.name);
+  }
+  storedData.scheduledCats.shift();
+  await persistStoredData(KEY_SCHEDULED_CATS);
 }
 
 const inventory = new Inventory(

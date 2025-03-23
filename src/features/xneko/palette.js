@@ -1,11 +1,9 @@
-import { silhouette, kMeans, distanceSquared, distance } from "./kmeans.js";
+import { kMeans, distanceSquared, distance } from "./kmeans.js";
 import { catNames } from "./Neko.js";
 
 const DEBUG = false;
 
-const usedNames = {};
-
-export async function getBestSpritesheetForImage(image) {
+export async function getBestPaletteAndSpritesheetForImage(image) {
   let canvas = document.createElement('canvas');
   let width = 64;
   let height = 64;
@@ -40,16 +38,26 @@ export async function getBestSpritesheetForImage(image) {
   bestName = scoredNames[0].name;
 
   if (bestName) {
-    console.log('best', bestName, scoredNames);
-    if (!usedNames[bestName]) {
-      usedNames[bestName] = 0;
+    if (DEBUG) {
+      console.log('best', bestName, scoredNames);
     }
-    usedNames[bestName] += 1;
-    console.log(usedNames);
-    return await getPalettedSpritesheet(spritesheets[bestName], bestClusters);
+    return {
+      sheetName: bestName,
+      palette: bestClusters,
+    };
   } else {
     console.error('unable to find spritesheet');
+    return null;
   }
+}
+
+export async function getSpritesheetFromSavedResults(sheetName, palette) {
+  let sheet = spritesheets[sheetName];
+  if (!sheet) {
+    return;
+  }
+  const sheetUrl = await getPalettedSpritesheet(sheet, palette);
+  return sheetUrl;
 }
 
 function palettize(imageData) {
