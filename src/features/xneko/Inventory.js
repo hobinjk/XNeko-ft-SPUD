@@ -86,7 +86,12 @@ export class Inventory {
       y = this.settings.snapYToGrid(y);
     }
 
-    let prop = new Prop(x, y, pt);
+
+    let prop = new Prop(this, x, y, pt);
+    this.pickUp(prop);
+  }
+
+  pickUp(prop) {
     this.activeDrag = {
       prop,
     };
@@ -124,6 +129,7 @@ export class Inventory {
       y > this.bounds.top && y < this.bounds.bottom) {
       // Cancel, prop was dropped in the trash
       prop.remove();
+      this.actionManager.removeProp(prop);
       return;
     }
 

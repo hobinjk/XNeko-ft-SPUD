@@ -1,7 +1,8 @@
 import { Z_INDEX_BASE } from "./constants.js";
 
 export class Prop {
-  constructor(x, y, propTemplate) {
+  constructor(inventory, x, y, propTemplate) {
+    this.inventory = inventory;
     this.width = propTemplate.width;
     this.height = propTemplate.height;
     this.propTemplate = propTemplate;
@@ -9,10 +10,18 @@ export class Prop {
     this.elt = this.propTemplate.create();
     this.moveTo(x, y);
     document.body.appendChild(this.elt);
+
+    this.onPointerDown = this.onPointerDown.bind(this);
+
+    this.elt.addEventListener('pointerdown', this.onPointerDown, { passive: true });
   }
 
   remove() {
     document.body.removeChild(this.elt);
+  }
+
+  onPointerDown() {
+    this.inventory.pickUp(this);
   }
 
   moveTo(x, y) {

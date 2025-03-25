@@ -13,6 +13,10 @@ export class ActionManager {
     this.props.push(prop);
   }
 
+  removeProp(prop) {
+    this.props = this.props.filter(p => p !== prop);
+  }
+
   update() {
     let dt = Date.now() - this.lastUpdate;
     for (let i = 0; i < this.cats.length; i++) {
