@@ -9,6 +9,7 @@ import { Inventory } from './xneko/Inventory.js';
 import { Settings } from './xneko/Settings.js';
 import { bedTemplate, bookshelfTemplate } from './xneko/PropTemplate.js';
 import { getBestPaletteAndSpritesheetForImage, getSpritesheetFromSavedResults } from "./xneko/palette.js";
+import { Prop } from './xneko/Prop.js';
 
 const nekoProcessedClass = 'xneko-processed';
 const blogLinkSelector = keyToCss('blogLink');
@@ -18,11 +19,23 @@ const alreadyProcessed = postElement =>
 
 const KEY_SCHEDULED_CATS = 'xneko.scheduledCats';
 const KEY_KNOWN_CATS = 'xneko.knownCats';
+const KEY_PROPS = 'xneko.props';
+const KEY_PROP_SRCS = 'xneko.propSrcs';
 
 const storedData = {
   scheduledCats: [],
   knownCats: {},
+  props: [],
+  propSrcs: [],
 };
+
+const storedDataDefaults = {
+  [KEY_PROP_SRCS]: [],
+  [KEY_PROPS]: [],
+  [KEY_KNOWN_CATS]: {},
+  [KEY_SCHEDULED_CATS]: [],
+};
+const allKeys = Object.keys(storedDataDefaults);
 
 const processPosts = function(postElements) {
   filterPostElements(postElements, { includeFiltered: true }).forEach(async postElement => {
@@ -111,44 +124,37 @@ async function spawnCat(name) {
   cats.push(new Neko(actionManager, name, sheetUrl, knownCat.data));
 }
 
-async function readStoredData(key) {
-  switch (key) {
-    case KEY_KNOWN_CATS:
-      const { [KEY_KNOWN_CATS]: knownCats = {} } = await browser.storage.local.get(KEY_KNOWN_CATS);
-      storedData.knownCats = knownCats;
-      break;
-    case KEY_SCHEDULED_CATS:
-      const { [KEY_SCHEDULED_CATS]: scheduledCats = [] } = await browser.storage.local.get(KEY_SCHEDULED_CATS);
-      storedData.scheduledCats = scheduledCats;
-      break;
-    default: {
-      const { [KEY_KNOWN_CATS]: knownCats = {} } = await browser.storage.local.get(KEY_KNOWN_CATS);
-      storedData.knownCats = knownCats;
-      const { [KEY_SCHEDULED_CATS]: scheduledCats = [] } = await browser.storage.local.get(KEY_SCHEDULED_CATS);
-      storedData.scheduledCats = scheduledCats;
-    }
-      break;
+async function readAllStoredData() {
+  for (const key of allKeys) {
+    await readStoredData(key);
   }
 }
 
-async function persistStoredData(key) {
-  switch (key) {
-    case KEY_KNOWN_CATS:
-      await browser.storage.local.set({ [KEY_KNOWN_CATS]: storedData.knownCats });
-      break;
-    case KEY_SCHEDULED_CATS:
-      await browser.storage.local.set({ [KEY_SCHEDULED_CATS]: storedData.scheduledCats });
-      break;
-    default:
-      await browser.storage.local.set({ [KEY_KNOWN_CATS]: storedData.knownCats });
-      await browser.storage.local.set({ [KEY_SCHEDULED_CATS]: storedData.scheduledCats });
-      break;
+async function readStoredData(key) {
+  let data = await browser.storage.local.get(key);
+
+  if (!data || !data[key]) {
+    data = storedDataDefaults;
   }
+  const keyWithoutPrefix = key.split('.')[1];
+  storedData[keyWithoutPrefix] = data[key];
+}
+
+// async function persistAllStoredData() {
+//   for (const key of allKeys) {
+//     await persistStoredData(key);
+//   }
+// }
+
+async function persistStoredData(key) {
+  const keyWithoutPrefix = key.split('.')[1];
+  await browser.storage.local.set({ [key]: storedData[keyWithoutPrefix] });
 }
 
 let running = false;
 export const main = async function() {
-  await readStoredData();
+  await readAllStoredData();
+  await restoreProps();
   onNewPosts.addListener(processPosts);
   running = true;
   update();
@@ -170,6 +176,53 @@ let checkDelayMs = 1000;
 let cats = [];
 // Preview
 let actionManager = new ActionManager(cats, [], false);
+
+let scheduledPersistProps = null;
+
+function onPropChange() {
+  if (scheduledPersistProps) {
+    return;
+  }
+  scheduledPersistProps = setTimeout(async () => {
+    try {
+      await persistProps();
+    } catch (e) {
+      console.error('unable to persist props', e);
+    }
+    scheduledPersistProps = null;
+  }, 500);
+}
+
+async function persistProps() {
+  let srcs = [];
+  let props = [];
+  for (let prop of actionManager.props) {
+    props.push(prop.serialize());
+  }
+  for (let prop of props) {
+    let internedStrId = srcs.indexOf(prop.src);
+    if (internedStrId < 0) {
+      internedStrId = srcs.length;
+      srcs.push(prop.src);
+    }
+    prop.src = internedStrId;
+  }
+  storedData.props = props;
+  storedData.propSrcs = srcs;
+  await persistStoredData(KEY_PROPS);
+  await persistStoredData(KEY_PROP_SRCS);
+}
+
+async function restoreProps() {
+  for (let prop of storedData.props) {
+    let oldSrc = prop.src;
+    prop.src = storedData.propSrcs[prop.src];
+    actionManager.addProp(Prop.deserialize(prop, inventory));
+    prop.src = oldSrc;
+  }
+  actionManager.addOnChange(onPropChange);
+}
+
 function update() {
   actionManager.update();
   const now = Date.now();

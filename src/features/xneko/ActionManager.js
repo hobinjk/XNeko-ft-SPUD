@@ -7,14 +7,34 @@ export class ActionManager {
     this.actions = new Array(this.cats.length);
     this.lastUpdate = Date.now();
     this.editorMode = editorMode;
+
+    this.onChanges = [];
+  }
+
+  addOnChange(fn) {
+    this.onChanges.push(fn);
+  }
+
+  removeOnChange(fn) {
+    this.onChanges = this.onChanges.filter(f => f !== fn);
+  }
+
+  triggerOnChanges(prop) {
+    this.onChanges.forEach(onChange => {
+      onChange(prop);
+    });
   }
 
   addProp(prop) {
     this.props.push(prop);
+    prop.addOnChange(this.triggerOnChanges);
+    this.triggerOnChanges(prop);
   }
 
   removeProp(prop) {
     this.props = this.props.filter(p => p !== prop);
+    prop.removeOnChange(this.triggerOnChanges);
+    this.triggerOnChanges(prop);
   }
 
   update() {
