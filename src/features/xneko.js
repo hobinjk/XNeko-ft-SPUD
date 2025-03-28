@@ -254,6 +254,14 @@ async function checkForScheduledCats() {
   if (nextCat.time > Date.now()) {
     return;
   }
+  storedData.scheduledCats.shift();
+
+  let catCount = cats.length;
+  let spawnProbability = (0.05 + (1 - catCount / settings.maxVisitingCats)) / 2;
+  if (Math.random() > spawnProbability) {
+    // Arbitrarily don't spawn this cat
+    return;
+  }
   let alreadyVisiting = false;
   for (let cat of cats) {
     if (cat.name === nextCat.name) {
@@ -264,12 +272,12 @@ async function checkForScheduledCats() {
   if (!alreadyVisiting) {
     spawnCat(nextCat.name);
   }
-  storedData.scheduledCats.shift();
   await persistStoredData(KEY_SCHEDULED_CATS);
 }
 
+const settings = new Settings();
 const inventory = new Inventory(
-  new Settings(),
+  settings,
   actionManager, [
   bedTemplate,
   bookshelfTemplate,

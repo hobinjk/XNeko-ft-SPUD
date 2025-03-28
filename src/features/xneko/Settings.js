@@ -1,6 +1,7 @@
 export class Settings {
   constructor() {
     this.snapToGrid = true;
+    this.maxVisitingCats = 12;
   }
 
   snapXToGrid(x) {
