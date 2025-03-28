@@ -37,17 +37,32 @@ export class ActionManager {
     this.triggerOnChanges(prop);
   }
 
+  removeCatAtIndex(catIndex) {
+    this.cats.splice(catIndex, 1);
+    this.actions.splice(catIndex, 1);
+  }
+
   update() {
     let dt = Date.now() - this.lastUpdate;
     for (let i = 0; i < this.cats.length; i++) {
       let cat = this.cats[i];
       let action = this.actions[i];
       if (!action || action.duration < 0) {
+        if (cat.visitDurationLeft < 0 && (
+          cat.x < 100 ||
+          cat.x > innerWidth + 100 ||
+          cat.y < 100 ||
+          cat.y > innerHeight + 100)) {
+          this.removeCatAtIndex(i);
+          // Repeat this index since we just moved the next cat in line here
+          i -= 1;
+          continue;
+        }
         this.actions[i] = this.getAction(cat);
         action = this.actions[i];
       }
       action.update(dt);
-      cat.update();
+      cat.update(dt);
     }
     this.lastUpdate += dt;
   }
@@ -61,6 +76,27 @@ export class ActionManager {
   }
 
   getAction(cat) {
+    if (cat.visitDurationLeft < 0) {
+      let offX = cat.x < innerWidth / 2 ?
+        -200 :
+        innerWidth + 200;
+      let offY = cat.y < innerHeight / 2 ?
+        -200 :
+        innerHeight + 200;
+      // Have a chance of running in a straight line
+      if (Math.random() < 1 / 3) {
+        offX = cat.x;
+      } else if (Math.random() < 0.5) {
+        offY = cat.x;
+      }
+      return new UndirectedAction(
+        cat,
+        'sleep',
+        1000,
+        offX,
+        offY
+      );
+    }
     let directedActions = [];
 
     let baseDuration = this.editorMode ? 3000 : 20000;

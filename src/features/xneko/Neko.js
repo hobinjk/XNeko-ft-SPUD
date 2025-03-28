@@ -130,8 +130,9 @@ export const Spritesheet = {
 };
 
 export class Neko {
-  constructor(actionManager, name, url, data) {
+  constructor(actionManager, name, url, visitDuration, data) {
     this.actionManager = actionManager;
+    this.visitDurationLeft = visitDuration;
     this.name = name;
     this.data = data;
     this.x = Math.random() * innerWidth;
@@ -239,7 +240,8 @@ export class Neko {
     }, 1200);
   }
 
-  update() {
+  update(dt) {
+    this.visitDurationLeft -= dt;
     this.updateMovement();
     this.updateAnimation();
   }
