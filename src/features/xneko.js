@@ -37,11 +37,14 @@ const storedDataDefaults = {
 };
 const allKeys = Object.keys(storedDataDefaults);
 
+const blogNameReA = /:\/\/([^.]+)\.tumblr\.com/;
+const blogNameReB = /:\/\/www\.tumblr\.com\/([^/]+)/;
+
 const processPosts = function(postElements) {
   filterPostElements(postElements, { includeFiltered: true }).forEach(async postElement => {
     if (alreadyProcessed(postElement)) return;
     postElement.classList.add(nekoProcessedClass);
-    const { postUrl, blog } = await timelineObject(postElement);
+    const { postUrl } = await timelineObject(postElement);
 
     const blogLinks = postElement.querySelectorAll(blogLinkSelector);
     if (blogLinks.length == 0) { return; }
@@ -51,12 +54,18 @@ const processPosts = function(postElements) {
       if (!avatarImg) {
         continue;
       }
-      // Community? Other strangeness
-      if (blog.name.startsWith('@')) {
+      let blogNameMatchesA = blogNameReA.exec(blogLink.href);
+      let blogNameMatchesB = blogNameReB.exec(blogLink.href);
+      let blogNameMatches = blogNameMatchesB || blogNameMatchesA;
+      if (!blogNameMatches) {
         continue;
       }
-      let time = Date.now(); // todo put them far out in the future
-      scheduleNeko(blog.name, time, avatarImg, postUrl);
+      let blogName = blogNameMatches[1];
+      if (!blogName) {
+        continue;
+      }
+      let time = Date.now();
+      scheduleNeko(blogName, time, avatarImg, postUrl);
     }
   });
 };
