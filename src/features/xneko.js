@@ -40,6 +40,20 @@ const allKeys = Object.keys(storedDataDefaults);
 const blogNameReA = /:\/\/([^.]+)\.tumblr\.com/;
 const blogNameReB = /:\/\/www\.tumblr\.com\/([^/]+)/;
 
+function getCatDelay() {
+  // Short horizon (0-2m)
+  if (Math.random() < 0.2 || cats.length === 0) {
+    return Math.random() * 120000;
+  }
+  // Medium horizon (30m-2 h)
+  if (Math.random() < 0.3) {
+    return (30 + 90 * Math.random()) * 60 * 1000;
+  }
+
+  // Long horizon 1-48h
+  return (1 + 47 * Math.random()) * 60 * 60 * 1000;
+}
+
 const processPosts = function(postElements) {
   filterPostElements(postElements, { includeFiltered: true }).forEach(async postElement => {
     if (alreadyProcessed(postElement)) return;
@@ -64,7 +78,13 @@ const processPosts = function(postElements) {
       if (!blogName) {
         continue;
       }
-      let time = Date.now();
+
+      if (Math.random() > 1 / 5 && cats.length > 0) {
+        // Arbitrarily discard 4/5ths of potential cats
+        continue;
+      }
+
+      let time = Date.now() + getCatDelay();
       scheduleNeko(blogName, time, avatarImg, postUrl);
     }
   });
@@ -83,6 +103,23 @@ function waitForImgLoad(img) {
       reject();
     };
   });
+}
+
+function insertSorted(scheduledCats, schedCat) {
+  if (scheduledCats.length === 0) {
+    scheduledCats.push(schedCat);
+    return;
+  }
+
+  // TODO rewrite as binary search if perf ever becomes a concern
+  // but like inserting is O(n) anyway so uhhhh
+  let i = 0;
+  for (; i < scheduledCats.length; i++) {
+    if (scheduledCats[i].time > schedCat.time) {
+      break;
+    }
+  }
+  scheduledCats.splice(i, 0, schedCat);
 }
 
 async function scheduleNeko(name, time, avatarImg, postUrl) {
@@ -111,7 +148,11 @@ async function scheduleNeko(name, time, avatarImg, postUrl) {
     };
     await persistStoredData(KEY_KNOWN_CATS);
   }
-  storedData.scheduledCats.push({
+  console.log('schedule', {
+    time,
+    name,
+  });
+  insertSorted(storedData.scheduledCats, {
     time,
     name,
   });
@@ -130,7 +171,7 @@ async function spawnCat(name) {
     console.error('unable to generate spritesheet for cat', knownCat);
     return;
   }
-  let visitDuration = 3000 + (Math.random() + Math.random()) * 6000;
+  let visitDuration = 30000 + (Math.random() + Math.random()) * 120000;
   cats.push(new Neko(actionManager, name, sheetUrl, visitDuration, knownCat.data));
 }
 
@@ -257,7 +298,7 @@ async function checkForScheduledCats() {
   storedData.scheduledCats.shift();
 
   let catCount = cats.length;
-  let spawnProbability = (0.05 + (1 - catCount / settings.maxVisitingCats)) / 2;
+  let spawnProbability = (0.05 + (1 - catCount / settings.maxVisitingCats));
   if (Math.random() > spawnProbability) {
     // Arbitrarily don't spawn this cat
     return;
