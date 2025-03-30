@@ -92,6 +92,9 @@ export class Inventory {
   }
 
   pickUp(prop) {
+    this.container.classList.add('open');
+    this.settingsContainer.classList.remove('open');
+
     this.activeDrag = {
       prop,
     };
