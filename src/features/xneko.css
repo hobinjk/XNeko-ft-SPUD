@@ -29,7 +29,7 @@
   bottom: 52px;
   left: 0;
   display: none;
-  background: rgba(0, 0, 0, 0.3);
+  background: rgba(32, 32, 32, 0.5);
 
   max-height: calc(48px * 4.5);
   overflow-y: scroll;
@@ -74,8 +74,9 @@
 
   z-index: 2;
 
-  border: 3px solid white;
-  background: #black;
+  border: 1px solid #111;
+  border-radius: 4px;
+  background: #333;
 
   display: flex;
   align-items: center;
@@ -84,8 +85,18 @@
   user-select: none;
 }
 
+.open-button:hover, .settings-button:hover {
+  border: 1px solid white;
+}
+
 .settings-button {
   left: 52px;
+}
+
+.settings-button > svg,
+.open-button > svg {
+  width: 32px;
+  height: 32px;
 }
 
 .inventory > .prop {
