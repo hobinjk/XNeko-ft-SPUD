@@ -13,6 +13,7 @@ export class Inventory {
 
     this.settingsContainer = document.createElement('div');
     this.settingsContainer.classList.add('settings');
+    this.settingsContainer.appendChild(settings.container);
 
     this.openButton = document.createElement('div');
     this.openButton.classList.add('open-button');

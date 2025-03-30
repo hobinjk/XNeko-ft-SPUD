@@ -35,17 +35,29 @@
   overflow-y: scroll;
 }
 
+.inventory.open {
+  display: grid;
+  grid-template-columns: repeat(7, 48px);
+}
+
 .settings {
   position: fixed;
   bottom: 52px;
   left: 52px;
-  border: 1px solid red;
+  border: 1px solid #aaa;
   display: none;
+  width: 256px;
+  background: #222;
+  color: white;
+  padding: 4px;
 }
 
-.inventory.open {
-  display: grid;
-  grid-template-columns: repeat(7, 48px);
+.settings.open {
+  display: block;
+}
+
+#neko-settings-visitors {
+  width: 4rem;
 }
 
 .open-button, .settings-button {
