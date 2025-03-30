@@ -7,7 +7,7 @@ import { ActionManager } from "./xneko/ActionManager.js";
 import { Neko } from "./xneko/Neko.js";
 import { Inventory } from './xneko/Inventory.js';
 import { Settings } from './xneko/Settings.js';
-import { bedTemplate, bookshelfTemplate } from './xneko/PropTemplate.js';
+import { templates } from './xneko/PropTemplate.js';
 import { getBestPaletteAndSpritesheetForImage, getSpritesheetFromSavedResults } from "./xneko/palette.js";
 import { Prop } from './xneko/Prop.js';
 
@@ -319,8 +319,7 @@ async function checkForScheduledCats() {
 const settings = new Settings();
 const inventory = new Inventory(
   settings,
-  actionManager, [
-  bedTemplate,
-  bookshelfTemplate,
-]);
+  actionManager,
+  templates,
+);
 inventory.add();
