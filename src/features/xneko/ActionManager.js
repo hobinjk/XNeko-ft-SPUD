@@ -36,6 +36,8 @@ export class ActionManager {
     this.lastUpdate = Date.now();
     this.editorMode = editorMode;
 
+    this.triggerOnChanges = this.triggerOnChanges.bind(this);
+
     this.onChanges = [];
   }
 
