@@ -56,7 +56,9 @@ export class ActionManager {
   }
 
   addProp(prop) {
-    this.props.push(prop);
+    if (!this.props.includes(prop)) {
+      this.props.push(prop);
+    }
     prop.addOnChange(this.triggerOnChanges);
     this.triggerOnChanges(prop);
   }
