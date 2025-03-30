@@ -197,12 +197,6 @@ async function readStoredData(key) {
   storedData[keyWithoutPrefix] = data[key];
 }
 
-// async function persistAllStoredData() {
-//   for (const key of allKeys) {
-//     await persistStoredData(key);
-//   }
-// }
-
 async function persistStoredData(key) {
   const keyWithoutPrefix = key.split('.')[1];
   await browser.storage.local.set({ [key]: storedData[keyWithoutPrefix] });
