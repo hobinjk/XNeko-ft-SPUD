@@ -349,7 +349,6 @@ class PropSpotAction extends Action {
       this.targetY = prop.y + Math.max(spot.y, prop.height - 16);
     }
 
-
     this.targetAnimation = targetAnimation;
     this.duration = duration;
   }
@@ -393,9 +392,11 @@ class PropSpotAction extends Action {
         this.duration -= dt;
         if (this.duration < 0) {
           this.spot.occupied = false;
-          this.phase = ActionPhase.descendFrom;
-          this.targetY = this.prop.y + this.prop.height - 16;
-          this.duration = 1;
+          if (this.spotOffGround) {
+            this.phase = ActionPhase.descendFrom;
+            this.targetY = this.prop.y + this.prop.height - 16;
+            this.duration = 1;
+          }
         }
         this.cat.z = this.prop.z + 5;
         break;
