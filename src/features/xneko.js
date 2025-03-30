@@ -219,6 +219,7 @@ export const clean = async function() {
   for (let cat of cats) {
     cat.remove();
   }
+  cats = [];
   running = false;
 }
 
