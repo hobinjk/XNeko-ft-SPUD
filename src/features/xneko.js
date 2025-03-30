@@ -172,6 +172,9 @@ async function spawnCat(name) {
     console.error('unable to generate spritesheet for cat', knownCat);
     return;
   }
+  if (!knownCat.data.visitCount) {
+    knownCat.data.visitCount = 0;
+  }
   knownCat.data.visitCount += 1;
   let visitDuration = 30000 + (Math.random() + Math.random()) * 120000;
   cats.push(new Neko(actionManager, name, sheetUrl, visitDuration, knownCat.data));
