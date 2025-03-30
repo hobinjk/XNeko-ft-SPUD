@@ -1,4 +1,4 @@
-import { Actions } from "./Neko.js";
+import { Actions } from './ActionManager.js';
 
 export class PropTemplate {
   constructor(width, height, spots, isFloorProp) {
