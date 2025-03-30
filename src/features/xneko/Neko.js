@@ -115,7 +115,7 @@ export class Neko {
     post.href = this.data.postUrl;
 
     let visits = this.infoCard.querySelector('.info-card-visit-count');
-    visits.textContent = 4;
+    visits.textContent = this.data.visitCount || 1;
 
     this.elt.appendChild(this.infoCard);
   }

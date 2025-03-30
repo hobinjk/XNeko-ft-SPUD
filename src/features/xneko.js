@@ -142,6 +142,7 @@ async function scheduleNeko(name, time, avatarImg, postUrl) {
       palette: results.palette,
       sheetName: results.sheetName,
       data: {
+        visitCount: 0,
         avatarSrc,
         postUrl,
       },
@@ -171,8 +172,10 @@ async function spawnCat(name) {
     console.error('unable to generate spritesheet for cat', knownCat);
     return;
   }
+  knownCat.data.visitCount += 1;
   let visitDuration = 30000 + (Math.random() + Math.random()) * 120000;
   cats.push(new Neko(actionManager, name, sheetUrl, visitDuration, knownCat.data));
+  await persistStoredData(KEY_KNOWN_CATS);
 }
 
 async function readAllStoredData() {
