@@ -70,6 +70,8 @@ export class ActionManager {
   }
 
   removeCatAtIndex(catIndex) {
+    let cat = this.cats[catIndex];
+    cat.remove();
     this.cats.splice(catIndex, 1);
     this.actions.splice(catIndex, 1);
   }
@@ -81,9 +83,9 @@ export class ActionManager {
       let action = this.actions[i];
       if (!action || action.duration < 0) {
         if (cat.visitDurationLeft < 0 && (
-          cat.x < 100 ||
+          cat.x < -100 ||
           cat.x > innerWidth + 100 ||
-          cat.y < 100 ||
+          cat.y < -100 ||
           cat.y > innerHeight + 100)) {
           this.removeCatAtIndex(i);
           // Repeat this index since we just moved the next cat in line here
