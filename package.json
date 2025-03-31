@@ -1,6 +1,6 @@
 {
   "license": "GPL-3.0",
-  "repository": "github:AprilSylph/XKit-Rewritten",
+  "repository": "github:hobinjk/XNeko-ft-SPUD",
   "scripts": {
     "test": "web-ext lint",
     "posttest": "eslint src/",
