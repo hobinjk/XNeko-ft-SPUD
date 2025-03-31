@@ -137,6 +137,7 @@ async function scheduleNeko(name, time, avatarImg, postUrl) {
       console.warn('unable to generate spritesheet');
       return;
     }
+    console.log('new cat', name);
     storedData.knownCats[name] = {
       avatarSrc,
       palette: results.palette,
@@ -205,6 +206,7 @@ async function persistStoredData(key) {
 let running = false;
 export const main = async function() {
   await readAllStoredData();
+  console.log('storedData', storedData);
   await restoreProps();
   onNewPosts.addListener(processPosts);
   running = true;
@@ -260,6 +262,7 @@ async function persistProps() {
     prop.src = internedStrId;
   }
   storedData.props = props;
+  console.log('yep props', props);
   storedData.propSrcs = srcs;
   await persistStoredData(KEY_PROPS);
   await persistStoredData(KEY_PROP_SRCS);
@@ -294,6 +297,7 @@ async function checkForScheduledCats() {
   }
   let nextCat = storedData.scheduledCats[0];
   if (nextCat.time > Date.now()) {
+    console.log(`next cat in ${Math.round((nextCat.time - Date.now()) / 1000)}s`);
     return;
   }
   storedData.scheduledCats.shift();

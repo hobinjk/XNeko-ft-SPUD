@@ -26,8 +26,8 @@
 
 .inventory {
   position: fixed;
-  bottom: 52px;
-  left: 0;
+  bottom: 56px;
+  left: 4px;
   display: none;
   background: rgba(32, 32, 32, 0.5);
 
@@ -42,8 +42,8 @@
 
 .settings {
   position: fixed;
-  bottom: 52px;
-  left: 52px;
+  bottom: 56px;
+  left: 56px;
   border: 1px solid #aaa;
   display: none;
   width: 256px;
@@ -69,8 +69,8 @@
   box-sizing: border-box;
 
   position: fixed;
-  bottom: 0;
-  left: 0;
+  bottom: 4px;
+  left: 4px;
 
   z-index: 2;
 
@@ -90,7 +90,7 @@
 }
 
 .settings-button {
-  left: 52px;
+  left: 56px;
 }
 
 .settings-button > svg,
