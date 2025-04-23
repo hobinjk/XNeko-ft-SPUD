@@ -25,11 +25,11 @@
         rel: 'stylesheet',
         href: browser.runtime.getURL(`/features/${name}.css?t=${timestamp}`)
       });
-      link.className = 'xkit';
+      link.className = 'xneko';
       document.documentElement.appendChild(link);
     }
     if (styleElement) {
-      styleElement.dataset.xkitFeature = name;
+      styleElement.dataset.xnekoFeature = name;
       document.documentElement.append(styleElement);
     }
 
@@ -98,7 +98,7 @@
   };
 
   const initMainWorld = () => new Promise(resolve => {
-    document.documentElement.addEventListener('xkit-injection-ready', resolve, { once: true });
+    document.documentElement.addEventListener('xneko-injection-ready', resolve, { once: true });
 
     const { nonce } = [...document.scripts].find(script => script.getAttributeNames().includes('nonce'));
     const script = document.createElement('script');
@@ -108,7 +108,7 @@
   });
 
   const init = async function() {
-    $('style.xkit, link.xkit').remove();
+    $('style.xneko, link.xneko').remove();
 
     browser.storage.onChanged.addListener(onStorageChanged);
 

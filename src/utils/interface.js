@@ -48,7 +48,7 @@ export const getPopoverWrapper = element => {
  * @param {PostFilterOptions} [postFilterOptions] - Post filter options
  * @returns {HTMLDivElement[]} Matching post elements
  */
-export const filterPostElements = function (postElements, { excludeClass, timeline, noBlogView = false, includeFiltered = false } = {}) {
+export const filterPostElements = function(postElements, { excludeClass, timeline, noBlogView = false, includeFiltered = false } = {}) {
   postElements = postElements
     .filter(element => element.isConnected)
     .map(element => element.closest(postSelector))
@@ -91,7 +91,7 @@ export const getPostElements = postFilterOptions => filterPostElements([...docum
  * @param {string} [css] - CSS rules to be included
  * @returns {HTMLStyleElement} Style element containing the provided CSS
  */
-export const buildStyle = (css = '') => dom('style', { class: 'xkit' }, null, [css]);
+export const buildStyle = (css = '') => dom('style', { class: 'xneko' }, null, [css]);
 
 /**
  * Determine a post's legacy type
