@@ -243,7 +243,7 @@ export const clean = async function() {
 export const stylesheet = true;
 
 let lastCheckForScheduledCats = Date.now();
-let checkDelayMs = 1000;
+let checkDelayMs = 4000;
 
 let cats = [];
 // Preview
