@@ -21,6 +21,7 @@ const KEY_SCHEDULED_CATS = 'xneko.scheduledCats';
 const KEY_KNOWN_CATS = 'xneko.knownCats';
 const KEY_PROPS = 'xneko.props';
 const KEY_PROP_SRCS = 'xneko.propSrcs';
+const MAX_SCHEDULED_CATS = 1024;
 
 const storedData = {
   scheduledCats: [],
@@ -154,10 +155,27 @@ async function scheduleNeko(name, time, avatarImg, postUrl) {
     time,
     name,
   });
-  insertSorted(storedData.scheduledCats, {
-    time,
-    name,
-  });
+  let alreadyScheduledLater = false;
+  for (let scheduledCat of storedData.scheduledCats) {
+    if (scheduledCat.name !== name) {
+      continue;
+    }
+    if (scheduledCat.time < time) {
+      return;
+    }
+    alreadyScheduledLater = true;
+    scheduledCat.time = time;
+    break;
+  }
+  if (storedData.scheduledCats.length > MAX_SCHEDULED_CATS) {
+    storedData.scheduledCats.splice(Math.floor((Math.random() + 0.5) * MAX_SCHEDULED_CATS / 4), Math.floor(MAX_SCHEDULED_CATS / 8));
+  }
+  if (!alreadyScheduledLater) {
+    insertSorted(storedData.scheduledCats, {
+      time,
+      name,
+    });
+  }
   await persistStoredData(KEY_SCHEDULED_CATS);
 }
 
