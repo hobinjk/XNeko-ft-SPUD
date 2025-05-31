@@ -38,6 +38,9 @@ function getClusterCenter(cluster, points) {
     z += point.z;
     count += 1;
   }
+  if (count === 0) {
+    return { x, y, z };
+  }
   return {
     x: x / count,
     y: y / count,
