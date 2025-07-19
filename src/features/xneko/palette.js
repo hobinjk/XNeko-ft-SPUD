@@ -247,7 +247,7 @@ async function loadSpritesheets() {
     let url = browser.runtime.getURL(`/features/xneko/spritesheets/${name}.png`);
     spritesheets[name] = await loadSpritesheet(url);
   }
-  console.log('done', spritesheets);
+  if (DEBUG) console.log('done', spritesheets);
 }
 
 loadSpritesheets();

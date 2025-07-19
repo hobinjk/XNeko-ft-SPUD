@@ -11,6 +11,8 @@ import { templates } from './xneko/PropTemplate.js';
 import { getBestPaletteAndSpritesheetForImage, getSpritesheetFromSavedResults } from "./xneko/palette.js";
 import { Prop } from './xneko/Prop.js';
 
+const DEBUG = false;
+
 const nekoProcessedClass = 'xneko-processed';
 const blogLinkSelector = keyToCss('blogLink');
 
@@ -138,7 +140,7 @@ async function scheduleNeko(name, time, avatarImg, postUrl) {
       console.warn('unable to generate spritesheet');
       return;
     }
-    console.log('new cat', name);
+    if (DEBUG) console.log('new cat', name);
     storedData.knownCats[name] = {
       avatarSrc,
       palette: results.palette,
@@ -151,10 +153,12 @@ async function scheduleNeko(name, time, avatarImg, postUrl) {
     };
     await persistStoredData(KEY_KNOWN_CATS);
   }
-  console.log('schedule', {
-    time,
-    name,
-  });
+  if (DEBUG) {
+    console.log('schedule', {
+      time,
+      name,
+    });
+  }
   let alreadyScheduledLater = false;
   for (let scheduledCat of storedData.scheduledCats) {
     if (scheduledCat.name !== name) {
@@ -315,7 +319,7 @@ async function checkForScheduledCats() {
   }
   let nextCat = storedData.scheduledCats[0];
   if (nextCat.time > Date.now()) {
-    console.log(`next cat in ${Math.round((nextCat.time - Date.now()) / 1000)}s`);
+    if (DEBUG) console.log(`next cat in ${Math.round((nextCat.time - Date.now()) / 1000)}s`);
     return;
   }
   storedData.scheduledCats.shift();
