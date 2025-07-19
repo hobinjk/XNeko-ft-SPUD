@@ -26,10 +26,9 @@ const KEY_PROP_SRCS = 'xneko.propSrcs';
 const MAX_SCHEDULED_CATS = 1024;
 
 const storedData = {
-  scheduledCats: [],
-  knownCats: {},
-  props: [],
-  propSrcs: [],
+  [KEY_SCHEDULED_CATS]: [],
+  [KEY_PROPS]: [],
+  [KEY_PROP_SRCS]: [],
 };
 
 const storedDataDefaults = {
@@ -38,7 +37,6 @@ const storedDataDefaults = {
   [KEY_KNOWN_CATS]: {},
   [KEY_SCHEDULED_CATS]: [],
 };
-const allKeys = Object.keys(storedDataDefaults);
 
 const blogNameReA = /:\/\/([^.]+)\.tumblr\.com/;
 const blogNameReB = /:\/\/www\.tumblr\.com\/([^/]+)/;
@@ -125,11 +123,16 @@ function insertSorted(scheduledCats, schedCat) {
   scheduledCats.splice(i, 0, schedCat);
 }
 
+function knownCatsStorageKey(name) {
+  let shard = name.substr(0, 3);
+  return `${KEY_KNOWN_CATS}.${shard}`;
+}
+
 async function scheduleNeko(name, time, avatarImg, postUrl) {
   await waitForImgLoad(avatarImg);
-  await readStoredData(KEY_KNOWN_CATS);
+  await readStoredData(knownCatsStorageKey(name));
   const avatarSrc = avatarImg.srcset.split(' ')[0];
-  let knownCat = storedData.knownCats[name];
+  let knownCat = storedData[knownCatsStorageKey(name)][name];
   if (!knownCat || knownCat.avatarSrc !== avatarSrc) {
     let coolerImage = new Image();
     coolerImage.crossOrigin = 'anonymous';
@@ -141,7 +144,7 @@ async function scheduleNeko(name, time, avatarImg, postUrl) {
       return;
     }
     if (DEBUG) console.log('new cat', name);
-    storedData.knownCats[name] = {
+    storedData[knownCatsStorageKey(name)][name] = {
       avatarSrc,
       palette: results.palette,
       sheetName: results.sheetName,
@@ -151,7 +154,7 @@ async function scheduleNeko(name, time, avatarImg, postUrl) {
         postUrl,
       },
     };
-    await persistStoredData(KEY_KNOWN_CATS);
+    await persistStoredData(knownCatsStorageKey(name));
   }
   if (DEBUG) {
     console.log('schedule', {
@@ -160,7 +163,7 @@ async function scheduleNeko(name, time, avatarImg, postUrl) {
     });
   }
   let alreadyScheduledLater = false;
-  for (let scheduledCat of storedData.scheduledCats) {
+  for (let scheduledCat of storedData[KEY_SCHEDULED_CATS]) {
     if (scheduledCat.name !== name) {
       continue;
     }
@@ -171,11 +174,11 @@ async function scheduleNeko(name, time, avatarImg, postUrl) {
     scheduledCat.time = time;
     break;
   }
-  if (storedData.scheduledCats.length > MAX_SCHEDULED_CATS) {
-    storedData.scheduledCats.splice(Math.floor((Math.random() + 0.5) * MAX_SCHEDULED_CATS / 4), Math.floor(MAX_SCHEDULED_CATS / 8));
+  if (storedData[KEY_SCHEDULED_CATS].length > MAX_SCHEDULED_CATS) {
+    storedData[KEY_SCHEDULED_CATS].splice(Math.floor((Math.random() + 0.5) * MAX_SCHEDULED_CATS / 4), Math.floor(MAX_SCHEDULED_CATS / 8));
   }
   if (!alreadyScheduledLater) {
-    insertSorted(storedData.scheduledCats, {
+    insertSorted(storedData[KEY_SCHEDULED_CATS], {
       time,
       name,
     });
@@ -184,8 +187,8 @@ async function scheduleNeko(name, time, avatarImg, postUrl) {
 }
 
 async function spawnCat(name) {
-  await readStoredData(KEY_KNOWN_CATS);
-  const knownCat = storedData.knownCats[name];
+  await readStoredData(knownCatsStorageKey(name));
+  const knownCat = storedData[knownCatsStorageKey(name)][name];
   if (!knownCat) {
     console.warn('never seen this cat before in my life', name);
     return;
@@ -201,13 +204,7 @@ async function spawnCat(name) {
   knownCat.data.visitCount += 1;
   let visitDuration = 30000 + (Math.random() + Math.random()) * 120000;
   cats.push(new Neko(actionManager, name, sheetUrl, visitDuration, knownCat.data));
-  await persistStoredData(KEY_KNOWN_CATS);
-}
-
-async function readAllStoredData() {
-  for (const key of allKeys) {
-    await readStoredData(key);
-  }
+  await persistStoredData(knownCatsStorageKey(name));
 }
 
 async function readStoredData(key) {
@@ -215,20 +212,23 @@ async function readStoredData(key) {
 
   if (!data || !data[key]) {
     data = storedDataDefaults;
+    if (key.startsWith(KEY_KNOWN_CATS)) {
+      data[key] = storedDataDefaults[KEY_KNOWN_CATS];
+    }
   }
-  const keyWithoutPrefix = key.split('.')[1];
-  storedData[keyWithoutPrefix] = data[key];
+  storedData[key] = data[key];
 }
 
 async function persistStoredData(key) {
-  const keyWithoutPrefix = key.split('.')[1];
-  await browser.storage.local.set({ [key]: storedData[keyWithoutPrefix] });
+  await browser.storage.local.set({ [key]: storedData[key] });
 }
 
 let running = false;
 export const main = async function() {
-  await readAllStoredData();
-  console.log('storedData', storedData);
+  await readStoredData(KEY_KNOWN_CATS);
+  if (Object.keys(storedData[KEY_KNOWN_CATS]).length > 0) {
+    await migrateKnownCats();
+  }
   await restoreProps();
   onNewPosts.addListener(processPosts);
   running = true;
@@ -283,17 +283,38 @@ async function persistProps() {
     }
     prop.src = internedStrId;
   }
-  storedData.props = props;
-  console.log('yep props', props);
-  storedData.propSrcs = srcs;
+  storedData[KEY_PROPS] = props;
+  if (DEBUG) console.log('yep props', props);
+  storedData[KEY_PROP_SRCS] = srcs;
   await persistStoredData(KEY_PROPS);
   await persistStoredData(KEY_PROP_SRCS);
 }
 
+async function migrateKnownCats() {
+  await readStoredData(KEY_KNOWN_CATS);
+  const knownCatShards = {};
+  for (const catName in storedData[KEY_KNOWN_CATS]) {
+    const key = knownCatsStorageKey(catName);
+    if (!knownCatShards.hasOwnProperty(key)) {
+      knownCatShards[key] = {};
+    }
+    knownCatShards[key][catName] = storedData[KEY_KNOWN_CATS][catName];
+  }
+
+  Object.assign(storedData, knownCatShards);
+  for (const storageKey in knownCatShards) {
+    await persistStoredData(storageKey);
+  }
+  storedData[KEY_KNOWN_CATS] = {};
+  await persistStoredData(KEY_KNOWN_CATS);
+}
+
 async function restoreProps() {
-  for (let prop of storedData.props) {
+  await readStoredData(KEY_PROPS);
+  await readStoredData(KEY_PROP_SRCS);
+  for (let prop of storedData[KEY_PROPS]) {
     let oldSrc = prop.src;
-    prop.src = storedData.propSrcs[prop.src];
+    prop.src = storedData[KEY_PROP_SRCS][prop.src];
     actionManager.addProp(Prop.deserialize(prop, inventory));
     prop.src = oldSrc;
   }
@@ -314,15 +335,15 @@ function update() {
 
 async function checkForScheduledCats() {
   await readStoredData(KEY_SCHEDULED_CATS);
-  if (storedData.scheduledCats.length === 0) {
+  if (storedData[KEY_SCHEDULED_CATS].length === 0) {
     return;
   }
-  let nextCat = storedData.scheduledCats[0];
+  let nextCat = storedData[KEY_SCHEDULED_CATS][0];
   if (nextCat.time > Date.now()) {
     if (DEBUG) console.log(`next cat in ${Math.round((nextCat.time - Date.now()) / 1000)}s`);
     return;
   }
-  storedData.scheduledCats.shift();
+  storedData[KEY_SCHEDULED_CATS].shift();
 
   let catCount = cats.length;
   let spawnProbability = (0.05 + (1 - catCount / settings.maxVisitingCats));
