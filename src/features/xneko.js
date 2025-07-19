@@ -132,7 +132,8 @@ async function scheduleNeko(name, time, avatarImg, postUrl) {
   await waitForImgLoad(avatarImg);
   await readStoredData(knownCatsStorageKey(name));
   const avatarSrc = avatarImg.srcset.split(' ')[0];
-  let knownCat = storedData[knownCatsStorageKey(name)][name];
+  const knownCats = storedData[knownCatsStorageKey(name)];
+  let knownCat = knownCats[name];
   if (!knownCat || knownCat.avatarSrc !== avatarSrc) {
     let coolerImage = new Image();
     coolerImage.crossOrigin = 'anonymous';
@@ -144,7 +145,7 @@ async function scheduleNeko(name, time, avatarImg, postUrl) {
       return;
     }
     if (DEBUG) console.log('new cat', name);
-    storedData[knownCatsStorageKey(name)][name] = {
+    knownCats[name] = {
       avatarSrc,
       palette: results.palette,
       sheetName: results.sheetName,
@@ -163,7 +164,8 @@ async function scheduleNeko(name, time, avatarImg, postUrl) {
     });
   }
   let alreadyScheduledLater = false;
-  for (let scheduledCat of storedData[KEY_SCHEDULED_CATS]) {
+  const scheduledCats = storedData[KEY_SCHEDULED_CATS];
+  for (let scheduledCat of scheduledCats) {
     if (scheduledCat.name !== name) {
       continue;
     }
@@ -174,11 +176,11 @@ async function scheduleNeko(name, time, avatarImg, postUrl) {
     scheduledCat.time = time;
     break;
   }
-  if (storedData[KEY_SCHEDULED_CATS].length > MAX_SCHEDULED_CATS) {
-    storedData[KEY_SCHEDULED_CATS].splice(Math.floor((Math.random() + 0.5) * MAX_SCHEDULED_CATS / 4), Math.floor(MAX_SCHEDULED_CATS / 8));
+  if (scheduledCats.length > MAX_SCHEDULED_CATS) {
+    scheduledCats.splice(Math.floor((Math.random() + 0.5) * MAX_SCHEDULED_CATS / 4), Math.floor(MAX_SCHEDULED_CATS / 8));
   }
   if (!alreadyScheduledLater) {
-    insertSorted(storedData[KEY_SCHEDULED_CATS], {
+    insertSorted(scheduledCats, {
       time,
       name,
     });
@@ -292,13 +294,14 @@ async function persistProps() {
 
 async function migrateKnownCats() {
   await readStoredData(KEY_KNOWN_CATS);
+  const knownCats = storedData[KEY_KNOWN_CATS];
   const knownCatShards = {};
-  for (const catName in storedData[KEY_KNOWN_CATS]) {
+  for (const catName in knownCats) {
     const key = knownCatsStorageKey(catName);
     if (!knownCatShards.hasOwnProperty(key)) {
       knownCatShards[key] = {};
     }
-    knownCatShards[key][catName] = storedData[KEY_KNOWN_CATS][catName];
+    knownCatShards[key][catName] = knownCats[catName];
   }
 
   Object.assign(storedData, knownCatShards);
@@ -335,15 +338,16 @@ function update() {
 
 async function checkForScheduledCats() {
   await readStoredData(KEY_SCHEDULED_CATS);
-  if (storedData[KEY_SCHEDULED_CATS].length === 0) {
+  const scheduledCats = storedData[KEY_SCHEDULED_CATS];
+  if (scheduledCats.length === 0) {
     return;
   }
-  let nextCat = storedData[KEY_SCHEDULED_CATS][0];
+  let nextCat = scheduledCats[0];
   if (nextCat.time > Date.now()) {
     if (DEBUG) console.log(`next cat in ${Math.round((nextCat.time - Date.now()) / 1000)}s`);
     return;
   }
-  storedData[KEY_SCHEDULED_CATS].shift();
+  scheduledCats.shift();
 
   let catCount = cats.length;
   let spawnProbability = (0.05 + (1 - catCount / settings.maxVisitingCats));
