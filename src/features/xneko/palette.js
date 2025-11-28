@@ -10,6 +10,9 @@ export async function getBestPaletteAndSpritesheetForImage(image) {
   canvas.width = width;
   canvas.height = height;
   let gfx = canvas.getContext('2d');
+  if (DEBUG) {
+    document.body.appendChild(canvas);
+  }
   gfx.drawImage(image, 0, 0, width, height);
   let imageData = gfx.getImageData(0, 0, width, height);
   let bestClusters = palettize(imageData);
@@ -67,6 +70,10 @@ function palettize(imageData) {
       let r = imageData.data[(y * imageData.width + x) * 4 + 0]
       let g = imageData.data[(y * imageData.width + x) * 4 + 1]
       let b = imageData.data[(y * imageData.width + x) * 4 + 2]
+      let a = imageData.data[(y * imageData.width + x) * 4 + 3]
+      if (a < 5) {
+        continue;
+      }
       points.push({
         x: r,
         y: g,
@@ -80,7 +87,7 @@ function palettize(imageData) {
 
   let allClusters = [];
   // for (let k = 2; k < 10; k++) {
-  const k = 8;
+  const k = 5;
   let clusters = kMeans(k, points);
   allClusters.push(clusters);
   // let score = silhouette(points, clusters);
@@ -147,26 +154,37 @@ function getSpritesheetScore(imageData, bestClusters) {
   let width = imageData.width;
   let uses = new Array(bestClusters.length).fill(0);
 
+  const bestClustersGray = bestClusters.map((bestCluster) => {
+    // https://www.mathworks.com/help/matlab/ref/rgb2gray.html
+    return {
+      x: bestCluster.x * 0.299 + bestCluster.y * 0.587 + bestCluster.z * 0.114,
+      y: 0,
+      z: 0,
+    };
+  });
+
   let skipCount = 5;
   for (let y = 0; y < height; y++) {
     for (let x = y % skipCount; x < width; x += skipCount) {
       let minDist = 256 * 256 * 3;
       let assignment = 0;
-      let r = imageData.data[(y * imageData.width + x) * 4 + 0]
-      let g = imageData.data[(y * imageData.width + x) * 4 + 1]
-      let b = imageData.data[(y * imageData.width + x) * 4 + 2]
-      let a = imageData.data[(y * imageData.width + x) * 4 + 3]
+      let r = imageData.data[(y * imageData.width + x) * 4 + 0];
+      let g = imageData.data[(y * imageData.width + x) * 4 + 1];
+      let b = imageData.data[(y * imageData.width + x) * 4 + 2];
+      let a = imageData.data[(y * imageData.width + x) * 4 + 3];
       if (a < 10) {
         continue;
       }
 
+      // Simplify to grayscale
       let point = {
-        x: r,
-        y: g,
-        z: b,
+        x: r * 0.299 + g * 0.587 + b * 0.114,
+        y: 0,
+        z: 0,
       };
       for (let i = 0; i < bestClusters.length; i++) {
-        let dist = distance(point, bestClusters[i]);
+        let bcg = bestClustersGray[i];
+        let dist = distance(point, bcg);
         if (dist >= minDist) {
           continue;
         }
