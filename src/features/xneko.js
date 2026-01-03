@@ -150,13 +150,16 @@ async function scheduleNeko(name, time, avatarImg, postUrl) {
       palette: results.palette,
       sheetName: results.sheetName,
       data: {
-        visitCount: 0,
+        visitCount: knownCat?.data?.visitCount ?? 0,
         avatarSrc,
         postUrl,
       },
     };
     await persistStoredData(knownCatsStorageKey(name));
   }
+  // Lazily sometimes update postUrl
+  knownCats[name].data.postUrl = postUrl;
+
   if (DEBUG) {
     console.log('schedule', {
       time,
