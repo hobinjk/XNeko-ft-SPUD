@@ -1,6 +1,9 @@
+import { PropList } from './PropList.js';
+
 export class Settings {
   constructor() {
     this.snapToGrid = true;
+    this.propList = new PropList();
     this.gridSize = 16;
     this.maxVisitingCats = 12;
     this.container = document.createElement('div');
@@ -20,6 +23,8 @@ export class Settings {
   <input type="number" id="neko-settings-visitors" value="12"/>
 </div>
 <div>
+  <input type="button" id="neko-open-prop-list" value="Add/Remove Available Props"></input>
+<div>
   Cats are from <a href="https://github.com/eliot-akira/neko">eliot-akira's neko archive</a>.
   Additional prop assets from <a href="https://toffeecraft.itch.io/cat-pack">ToffeeCraft</a> and <a href="https://penzilla.itch.io/top-down-retro-interior">Penzilla</a>.
 </div>`;
@@ -30,7 +35,12 @@ export class Settings {
     });
     const visitorsInput = this.container.querySelector('#neko-settings-visitors');
     visitorsInput.addEventListener('change', () => {
-      this.maxVisitingCats = parseInt(visitorsInput.value) || 10
+      this.maxVisitingCats = parseInt(visitorsInput.value) || 10;
+    });
+    const openPropList = this.container.querySelector('#neko-open-prop-list');
+    openPropList.addEventListener('click', () => {
+      this.propList.open();
+      this.container.parentNode.classList.remove('open');
     });
   }
 

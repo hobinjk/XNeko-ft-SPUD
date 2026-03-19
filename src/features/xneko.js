@@ -7,7 +7,7 @@ import { ActionManager } from "./xneko/ActionManager.js";
 import { Neko } from "./xneko/Neko.js";
 import { Inventory } from './xneko/Inventory.js';
 import { Settings } from './xneko/Settings.js';
-import { templates } from './xneko/PropTemplate.js';
+import { templates } from './xneko/Templates.js';
 import { getBestPaletteAndSpritesheetForImage, getSpritesheetFromSavedResults } from "./xneko/palette.js";
 import { Prop } from './xneko/Prop.js';
 
@@ -229,11 +229,20 @@ async function persistStoredData(key) {
 }
 
 let running = false;
+let settings;
+
 export const main = async function() {
   await readStoredData(KEY_KNOWN_CATS);
   if (Object.keys(storedData[KEY_KNOWN_CATS]).length > 0) {
     await migrateKnownCats();
   }
+  await templates.load();
+  settings = new Settings();
+  const inventory = new Inventory(
+    settings,
+    actionManager,
+  );
+  inventory.add();
   await restoreProps();
   onNewPosts.addListener(processPosts);
   running = true;
@@ -321,7 +330,7 @@ async function restoreProps() {
   for (let prop of storedData[KEY_PROPS]) {
     let oldSrc = prop.src;
     prop.src = storedData[KEY_PROP_SRCS][prop.src];
-    actionManager.addProp(Prop.deserialize(prop, inventory));
+    actionManager.addProp(Prop.deserialize(prop));
     prop.src = oldSrc;
   }
   actionManager.addOnChange(onPropChange);
@@ -353,7 +362,7 @@ async function checkForScheduledCats() {
   scheduledCats.shift();
 
   let catCount = cats.length;
-  let spawnProbability = (0.05 + (1 - catCount / settings.maxVisitingCats));
+  let spawnProbability = (0.05 + (1 - catCount / (settings?.maxVisitingCats ?? 12)));
   if (Math.random() > spawnProbability) {
     // Arbitrarily don't spawn this cat
     return;
@@ -371,10 +380,3 @@ async function checkForScheduledCats() {
   await persistStoredData(KEY_SCHEDULED_CATS);
 }
 
-const settings = new Settings();
-const inventory = new Inventory(
-  settings,
-  actionManager,
-  templates,
-);
-inventory.add();
