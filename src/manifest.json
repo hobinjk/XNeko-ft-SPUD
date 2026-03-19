@@ -16,7 +16,7 @@
   "permissions": [ "storage" ],
   "web_accessible_resources": [{
     "resources": [ "*.js", "*.json", "*.css", "*.svg", "*.png", "*.gif", "*.webp" ],
-    "matches": [ "*://www.tumblr.com/*", "*://*.media.tumblr.com/*" ]
+    "matches": [ "*://www.tumblr.com/*", "*://*.media.tumblr.com/*", "*://assets.tumblr.com/*" ]
   }],
   "content_scripts": [
     {
