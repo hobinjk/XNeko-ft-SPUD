@@ -243,7 +243,7 @@ export const main = async function() {
     actionManager,
   );
   inventory.add();
-  await restoreProps();
+  await restoreProps(inventory);
   onNewPosts.addListener(processPosts);
   running = true;
   update();
@@ -324,13 +324,13 @@ async function migrateKnownCats() {
   await persistStoredData(KEY_KNOWN_CATS);
 }
 
-async function restoreProps() {
+async function restoreProps(inventory) {
   await readStoredData(KEY_PROPS);
   await readStoredData(KEY_PROP_SRCS);
   for (let prop of storedData[KEY_PROPS]) {
     let oldSrc = prop.src;
     prop.src = storedData[KEY_PROP_SRCS][prop.src];
-    actionManager.addProp(Prop.deserialize(prop));
+    actionManager.addProp(Prop.deserialize(prop, inventory));
     prop.src = oldSrc;
   }
   actionManager.addOnChange(onPropChange);
