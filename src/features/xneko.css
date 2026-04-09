@@ -4,12 +4,19 @@
   position: fixed;
   image-rendering: pixelated;
   transform: translate(-50%, -50%);
+  cursor: grab;
 }
 
 .prop {
   position: fixed;
   image-rendering: pixelated;
+  cursor: grab;
 }
+
+.prop.grabbing {
+  cursor: grabbing;
+}
+
 .prop > img {
   user-select: none;
 }

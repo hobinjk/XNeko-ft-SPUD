@@ -101,6 +101,7 @@ export class Inventory {
   pickUp(prop) {
     this.container.classList.add('open');
     this.settingsContainer.classList.remove('open');
+    prop.elt.classList.add('grabbing');
 
     this.activeDrag = {
       prop,
@@ -132,6 +133,7 @@ export class Inventory {
     let y = event.clientY;
 
     let prop = this.activeDrag.prop;
+    prop.elt.classList.remove('grabbing');
     this.activeDrag = null;
     this.container.classList.remove('trash');
 
