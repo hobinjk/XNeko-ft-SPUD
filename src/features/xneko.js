@@ -208,7 +208,11 @@ async function spawnCat(name) {
   }
   knownCat.data.visitCount += 1;
   let visitDuration = 30000 + (Math.random() + Math.random()) * 120000;
-  cats.push(new Neko(actionManager, name, sheetUrl, visitDuration, knownCat.data));
+  const cat = new Neko(actionManager, name, sheetUrl, visitDuration, knownCat.data);
+  cats.push(cat);
+  if (settings?.hideBubbles) {
+    cat.infoCard.classList.remove('info-card-open');
+  }
   await persistStoredData(knownCatsStorageKey(name));
 }
 
@@ -238,6 +242,7 @@ export const main = async function() {
   }
   await templates.load();
   settings = new Settings();
+  await settings.load();
   const inventory = new Inventory(
     settings,
     actionManager,

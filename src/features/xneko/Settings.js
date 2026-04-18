@@ -1,4 +1,5 @@
 import { PropList } from './PropList.js';
+const storageKey = 'xneko.settings';
 
 export class Settings {
   constructor() {
@@ -6,6 +7,7 @@ export class Settings {
     this.propList = new PropList();
     this.gridSize = 16;
     this.maxVisitingCats = 12;
+    this.hideBubbles = false;
     this.container = document.createElement('div');
     this.container.innerHTML = `
 <div>
@@ -23,25 +25,59 @@ export class Settings {
   <input type="number" id="neko-settings-visitors" value="12"/>
 </div>
 <div>
+  <label for="neko-settings-hide-bubbles">Hide Starting Info Bubbles</label>
+  <input type="checkbox" id="neko-settings-hide-bubbles"></input>
+<div>
+<div>
   <input type="button" id="neko-open-prop-list" value="Add/Remove Available Props"></input>
 <div>
   Cats are from <a href="https://github.com/eliot-akira/neko">eliot-akira's neko archive</a>.
   Additional prop assets from <a href="https://toffeecraft.itch.io/cat-pack">ToffeeCraft</a> and <a href="https://penzilla.itch.io/top-down-retro-interior">Penzilla</a>.
 </div>`;
 
-    const gridSizeSelect = this.container.querySelector('#neko-settings-grid');
-    gridSizeSelect.addEventListener('change', () => {
-      this.gridSize = parseFloat(gridSizeSelect.value) || 1;
+    this.gridSizeSelect = this.container.querySelector('#neko-settings-grid');
+    this.gridSizeSelect.addEventListener('change', () => {
+      this.gridSize = parseFloat(this.gridSizeSelect.value) || 1;
+      this.save();
     });
-    const visitorsInput = this.container.querySelector('#neko-settings-visitors');
-    visitorsInput.addEventListener('change', () => {
-      this.maxVisitingCats = parseInt(visitorsInput.value) || 10;
+    this.visitorsInput = this.container.querySelector('#neko-settings-visitors');
+    this.visitorsInput.addEventListener('change', () => {
+      this.maxVisitingCats = parseInt(this.visitorsInput.value) || 10;
+      this.save();
+    });
+    this.hideBubblesCheckbox = this.container.querySelector('#neko-settings-hide-bubbles');
+    this.hideBubblesCheckbox.addEventListener('change', () => {
+      this.hideBubbles = this.hideBubblesCheckbox.checked;
+      this.save();
     });
     const openPropList = this.container.querySelector('#neko-open-prop-list');
     openPropList.addEventListener('click', () => {
       this.propList.open();
       this.container.parentNode.classList.remove('open');
     });
+  }
+
+  async load() {
+    const storage = await browser.storage.local.get(storageKey);
+    const settingsSerialized = storage?.[storageKey];
+    if (typeof settingsSerialized?.gridSize === 'undefined') {
+      return;
+    }
+    this.gridSizeSelect.value = settingsSerialized.gridSize;
+    this.gridSize = settingsSerialized.gridSize;
+    this.visitorsInput.value = settingsSerialized.maxVisitingCats;
+    this.maxVisitingCats = settingsSerialized.maxVisitingCats;
+    this.hideBubblesCheckbox.checked = settingsSerialized.hideBubbles;
+    this.hideBubbles = settingsSerialized.hideBubbles;
+  }
+
+  async save() {
+    const settingsSerialized = {
+      gridSize: this.gridSize,
+      maxVisitingCats: this.maxVisitingCats,
+      hideBubbles: this.hideBubbles,
+    };
+    await browser.storage.local.set({ [storageKey]: settingsSerialized });
   }
 
   snapXToGrid(x) {
